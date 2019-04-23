@@ -27,6 +27,8 @@ class FiringRateView(IPlugin):
             @gui.connect_
             def on_select(clusters,**kwargs):
                 # We clear the figure.
+                if not clusters:
+                    return
                 ax.clear()
                 # We compute the ISI for all selected clusters
                 nbins = 350

@@ -25,6 +25,8 @@ class ISIViewTraces(IPlugin):
             # by the GUI at every cluster selection change.
             @gui.connect_
             def on_select(clusters, **kwargs):
+                if not clusters:
+                    return
                 # We clear the figure.
                 ax.clear()
 
@@ -34,7 +36,6 @@ class ISIViewTraces(IPlugin):
                 xlim = (nbins+1)/1000
                 refractory = 2 #ms
                 firstbins = np.zeros(int((xlim-bw)*1000))
-
 
                 if len(clusters)==1:
                     nclusters = 1
@@ -46,7 +47,7 @@ class ISIViewTraces(IPlugin):
                     if ci<len(clusters):
                         cluster = clusters[ci]
                         spikes = c._get_spike_times(cluster, True).data
-                        ccolor = mycolors[min(ci,len(mycolors)-1)]
+                        ccolor = mycolors[ci % len(mycolors)]
                         lw = 2.0
                         alpha = 1
                     else:
@@ -57,6 +58,8 @@ class ISIViewTraces(IPlugin):
 
                     bins = np.arange(0, xlim, bw)
                     y, bin_edges = np.histogram(np.diff(spikes),bins=bins)
+                    if len(spikes)==1:
+                        return
                     y = y/(len(spikes)-1)*100 #percents
                     firstbins[ci] = sum(y[range(refractory)])
                     bins = bins*1000
@@ -73,12 +76,13 @@ class ISIViewTraces(IPlugin):
                 ypos = ylims[1]*0.1
                 xpos = nbins/2
 
-                ax.text(xpos,ylims[1]-1*ypos,'Best (%u) %.2f%%' % (clusters[0],firstbins[0]),alpha = 0.7,fontsize = 14,color=mycolors[0])
+                rect_alpha = 0.8
+                ax.text(xpos,ylims[1]-1*ypos,'Best (%u) %.2f%%' % (clusters[0],firstbins[0]),alpha = 0.7,fontsize = 14,color=mycolors[0],bbox=dict(facecolor='black',alpha=rect_alpha))
                 #ax.plot([refractory, refractory],[0, ylims[1]],color='white',linewidth=1,alpha=0.7) # refractory period demarcation
 
                 if len(clusters)>1:
-                    ax.text(xpos,ylims[1]-2*ypos,'Similar (%u) %.2f%%' % (clusters[1],firstbins[1]),alpha = 0.7,fontsize = 14,color=mycolors[1])
-                    ax.text(xpos,ylims[1]-3* ypos,'Group %.2f%%' % firstbins[len(clusters)],alpha = 0.7,fontsize = 14,color='white')
+                    ax.text(xpos,ylims[1]-2*ypos,'Similar (%u) %.2f%%' % (clusters[1],firstbins[1]),alpha = 0.7,fontsize = 14,color=mycolors[1],bbox=dict(facecolor='black',alpha=rect_alpha))
+                    ax.text(xpos,ylims[1]-3* ypos,'Group %.2f%%' % firstbins[len(clusters)],alpha = 0.7,fontsize = 14,color='white',bbox=dict(facecolor='black',alpha=rect_alpha))
 
                 ax.set_xlim([-bw*1000, xlim*1000])
 

@@ -6,7 +6,7 @@ from phy import IPlugin
 
 class ColumnISI(IPlugin):
     def attach_to_controller(self, controller):
-        refractory = 2
+        refractory = 2 # in ms
         ctx = controller.context
         @controller.supervisor.connect
         def on_create_cluster_views():
@@ -20,7 +20,9 @@ class ColumnISI(IPlugin):
                 spikes = controller._get_spike_times(cluster_id,True).data
                 bins = np.arange(0, xlim, bw)
                 y,bin_edges = np.histogram(np.diff(spikes),bins=bins)
+                if len(spikes)==1:
+                    return 0
                 y = y/(len(spikes)-1)*100 #percents
                 data = sum(y[range(refractory)])
-                return data
+                return '%.2f'%(data)
 
